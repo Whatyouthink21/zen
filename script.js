@@ -1,4 +1,4 @@
-// script.js - Full code for ZenShows streaming site
+// script.js - Full code for ZenShows streaming site (Improved UI Version)
 
 const API_KEY = 'a45420333457411e78d5ad35d6c51a2d'; // TMDB API Key
 const BASE_URL = 'https://api.themoviedb.org/3';
@@ -10,7 +10,8 @@ const STORAGE_KEYS = {
     myList: 'zenshows_myList',
     history: 'zenshows_history',
     settings: 'zenshows_settings',
-    comments: 'zenshows_comments'
+    comments: 'zenshows_comments',
+    theme: 'zenshows_theme'
 };
 
 // Streaming sources (11 total: vidsrc + 10 more)
@@ -22,7 +23,7 @@ const STREAM_SOURCES = [
     { name: 'VidSrc Pro', url: (id, type) => `https://vidsrc.pro/embed/${type}/${id}` },
     { name: 'Embedsoap', url: (id, type) => `https://www.embedsoap.com/embed/${type}/${id}` },
     { name: 'VidSrc.to', url: (id, type) => `https://vidsrc.to/embed/${type}/${id}` },
-    { name: 'VidSrc.me', url: (id, type) => `https://vidsrc.me/embed/${type}/${id}` }, // Duplicate for fallback
+    { name: 'VidSrc.me', url: (id, type) => `https://vidsrc.me/embed/${type}/${id}` },
     { name: 'Embedflix', url: (id, type) => `https://embedflix.com/embed/${type}/${id}` },
     { name: 'VidSrc.cc', url: (id, type) => `https://vidsrc.cc/embed/${type}/${id}` },
     { name: 'VidSrc.in', url: (id, type) => `https://vidsrc.in/embed/${type}/${id}` }
@@ -38,14 +39,19 @@ function showToast(message) {
 
 function openModal(modalId) {
     document.getElementById(modalId).style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
+    document.body.style.overflow = 'auto';
 }
 
 function loadSettings() {
     const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings)) || {};
+    const theme = localStorage.getItem(STORAGE_KEYS.theme) || 'dark';
+    document.body.classList.toggle('light-mode', theme === 'light');
+    document.getElementById('themeToggle').textContent = theme === 'dark' ? '🌙' : '☀️';
     if (settings.darkMode) document.body.classList.add('dark-mode');
     if (settings.kidsMode) document.body.classList.add('kids-mode');
     // Apply other settings...
@@ -61,6 +67,25 @@ function saveSettings() {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
     loadSettings();
     showToast('Settings saved!');
+}
+
+function toggleTheme() {
+    const currentTheme = localStorage.getItem(STORAGE_KEYS.theme) || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(STORAGE_KEYS.theme, newTheme);
+    loadSettings();
+}
+
+// Particles effect for hero
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 10 + 's';
+        particlesContainer.appendChild(particle);
+    }
 }
 
 // TMDB API functions
@@ -108,13 +133,29 @@ async function search(query, type = 'movie') {
 function renderGrid(gridId, items, type) {
     const grid = document.getElementById(gridId);
     grid.innerHTML = items.map(item => `
-        <div class="card" data-id="${item.id}" data-type="${type}">
-            <img src="${IMG_BASE_URL}${item.poster_path || item.backdrop_path}" alt="${item.title || item.name}">
+        <div class="card" data-id="${item.id}" data-type="${type}" tabindex="0" role="button" aria-label="${item.title || item.name}">
+            <img src="${IMG_BASE_URL}${item.poster_path || item.backdrop_path}" alt="${item.title || item.name}" loading="lazy">
             <h3>${item.title || item.name}</h3>
+            <div class="card-overlay">
+                <button class="play-btn" onclick="playItem(${item.id}, '${type}')">▶ Play</button>
+                <button class="add-btn" onclick="addToList(${item.id}, '${type}')">+ My List</button>
+            </div>
         </div>
     `).join('');
     document.querySelectorAll(`#${gridId} .card`).forEach(card => {
         card.addEventListener('click', () => showDetails(card.dataset.id, card.dataset.type));
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter') showDetails(card.dataset.id, card.dataset.type); });
+    });
+}
+
+// Infinite scroll
+function addInfiniteScroll(gridId) {
+    const grid = document.getElementById(gridId);
+    grid.addEventListener('scroll', () => {
+        if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 100) {
+            // Load more items (dummy for now)
+            showToast('Loading more...');
+        }
     });
 }
 
@@ -123,15 +164,15 @@ async function showDetails(id, type) {
     const data = await fetchData(`/${type}/${id}`);
     if (data) {
         const content = `
-            <h2>${data.title || data.name}</h2>
-            <img src="${IMG_BASE_URL}${data.poster_path}" alt="${data.title || data.name}" style="width:200px;">
+            <h2 id="detailsTitle">${data.title || data.name}</h2>
+            <img src="${IMG_BASE_URL}${data.poster_path}" alt="${data.title || data.name}" style="width:200px; border-radius:10px;">
             <p>${data.overview}</p>
-            <p>Rating: ${data.vote_average}/10</p>
+            <p>Rating: ${data.vote_average}/10 | Release: ${data.release_date || data.first_air_date}</p>
             <button class="favorites-btn" onclick="addToList(${id}, '${type}')">Add to My List</button>
             <button class="share-btn" onclick="shareItem('${data.title || data.name}', '${window.location.href}')">Share</button>
             <button class="download-btn" onclick="downloadDummy()">Download</button>
             <button onclick="showCast(${id}, '${type}')">View Cast</button>
-            <button onclick="playItem(${id}, '${type}')">Play</button>
+            <button class="play-btn" onclick="playItem(${id}, '${type}')">Play Now</button>
             <div id="commentsSection"></div>
         `;
         document.getElementById('detailsContent').innerHTML = content;
@@ -143,16 +184,18 @@ async function showDetails(id, type) {
 function playItem(id, type) {
     const playerContent = document.getElementById('playerContent');
     playerContent.innerHTML = `
+        <h2 id="playerTitle">Now Playing</h2>
         <div class="quality-selector">
-            <select id="sourceSelect">
+            <select id="sourceSelect" aria-label="Select Source">
                 ${STREAM_SOURCES.map((src, index) => `<option value="${index}">${src.name}</option>`).join('')}
             </select>
         </div>
-        <iframe id="playerIframe" src="${STREAM_SOURCES[0].url(id, type)}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
+        <iframe id="playerIframe" src="${STREAM_SOURCES[0].url(id, type)}" width="100%" height="500" frameborder="0" allowfullscreen aria-label="Video Player"></iframe>
         <div class="player-controls">
             <button class="player-btn" onclick="skipIntro()">Skip Intro</button>
             <button class="player-btn" onclick="togglePictureInPicture()">PiP</button>
             <button class="player-btn" onclick="changeSpeed()">Speed</button>
+            <button class="player-btn" onclick="toggleFullscreen()">Fullscreen</button>
         </div>
         <div class="episode-list" id="episodeList"></div>
     `;
@@ -179,16 +222,16 @@ async function loadEpisodes(seriesId) {
 }
 
 function playEpisode(seriesId, season, episode) {
-    playItem(`${seriesId}?s=${season}&e=${episode}`, 'tv'); // Adjust for sources
+    playItem(`${seriesId}?s=${season}&e=${episode}`, 'tv');
 }
 
 async function showCast(id, type) {
     const data = await fetchData(`/${type}/${id}/credits`);
     if (data) {
         const castContent = data.cast.slice(0, 10).map(person => `
-            <div>
-                <img src="${IMG_BASE_URL}${person.profile_path}" alt="${person.name}" style="width:100px;">
-                <p>${person.name} as ${person.character}</p>
+            <div class="cast-item">
+                <img src="${IMG_BASE_URL}${person.profile_path}" alt="${person.name}" style="width:100px; border-radius:50%;">
+                <p>${person.name}<br><small>${person.character}</small></p>
             </div>
         `).join('');
         document.getElementById('castContent').innerHTML = castContent;
@@ -209,7 +252,7 @@ function addToList(id, type) {
 function addToHistory(id, type) {
     const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.history)) || [];
     history.unshift({ id, type, timestamp: Date.now() });
-    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history.slice(0, 50))); // Limit to 50
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history.slice(0, 50)));
 }
 
 function loadMyList() {
@@ -246,7 +289,7 @@ function loadComments(id) {
 
 function submitComment() {
     const input = document.getElementById('commentInput');
-    const id = document.querySelector('.card[data-id]').dataset.id; // Assuming context
+    const id = document.querySelector('.card[data-id]').dataset.id;
     const comments = JSON.parse(localStorage.getItem(STORAGE_KEYS.comments)) || {};
     if (!comments[id]) comments[id] = [];
     comments[id].push(input.value);
@@ -268,6 +311,12 @@ function downloadDummy() {
 function skipIntro() { showToast('Skipping intro...'); }
 function togglePictureInPicture() { showToast('PiP toggled.'); }
 function changeSpeed() { showToast('Speed changed.'); }
+function toggleFullscreen() { document.getElementById('playerModal').requestFullscreen(); }
+
+// FAB actions
+function fabActions() {
+    showToast('Quick actions: Search, Settings, etc.');
+}
 
 // Login (dummy)
 document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -300,28 +349,35 @@ document.querySelectorAll('.nav-link').forEach(link => {
         if (page === 'my-list') loadMyList();
         else if (page === 'history') loadHistory();
         else if (page === 'settings') openModal('settingsModal');
-        else if (page === 'movies') loadPopular(); // Example
-        else if (page === 'series') search('', 'tv'); // Example
+        else if (page === 'movies') loadPopular();
+        else if (page === 'series') search('', 'tv');
     });
 });
 
 // Close modals
 document.querySelectorAll('.close').forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
-        closeBtn.closest('.modal').style.display = 'none';
+        const modal = closeBtn.closest('.modal');
+        closeModal(modal.id);
     });
 });
 document.getElementById('saveSettings').addEventListener('click', saveSettings);
 document.getElementById('submitComment').addEventListener('click', submitComment);
 document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+document.getElementById('fab').addEventListener('click', fabActions);
 document.querySelector('.close-ad').addEventListener('click', () => document.getElementById('adBanner').style.display = 'none');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
+    createParticles();
     loadTrending();
     loadPopular();
     loadGenres();
+    addInfiniteScroll('trendingGrid');
+    addInfiniteScroll('popularGrid');
+    addInfiniteScroll('recGrid');
     // Show intrusive banner after 5s
     setTimeout(() => document.getElementById('adBanner').style.display = 'block', 5000);
 });
