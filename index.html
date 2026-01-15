@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenShows - Ultimate Streaming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
 </head>
@@ -17,35 +18,38 @@
             <a href="#" class="nav-link" data-page="my-list">My List</a>
             <a href="#" class="nav-link" data-page="history">History</a>
             <a href="#" class="nav-link" data-page="settings">Settings</a>
-            <button class="search-btn">Search</button>
-            <button class="login-btn" id="loginBtn">Login</button>
+            <button class="search-btn" aria-label="Search">🔍</button>
+            <button class="login-btn" id="loginBtn" aria-label="Login">Login</button>
         </nav>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">🌙</button>
     </header>
     <main class="main">
         <section class="hero" id="hero">
+            <div class="hero-overlay"></div>
             <div class="hero-content">
-                <h1>Welcome to ZenShows</h1>
-                <p>Stream unlimited movies and shows for free.</p>
-                <button class="cta-btn">Start Watching</button>
+                <h1>Discover Endless Entertainment</h1>
+                <p>Stream movies and shows for free, anytime.</p>
+                <button class="cta-btn">Explore Now</button>
             </div>
             <div class="hero-bg"></div>
+            <div class="particles" id="particles"></div>
         </section>
         <section class="content" id="content">
             <div class="trending" id="trending">
                 <h2>Trending Now</h2>
-                <div class="grid" id="trendingGrid"></div>
+                <div class="grid infinite-scroll" id="trendingGrid"></div>
             </div>
             <div class="popular" id="popular">
-                <h2>Popular</h2>
-                <div class="grid" id="popularGrid"></div>
+                <h2>Popular Picks</h2>
+                <div class="grid infinite-scroll" id="popularGrid"></div>
             </div>
             <div class="genres" id="genres">
-                <h2>Genres</h2>
+                <h2>Browse by Genre</h2>
                 <div class="genre-list" id="genreList"></div>
             </div>
             <div class="recommendations" id="recommendations">
                 <h2>Recommended for You</h2>
-                <div class="grid" id="recGrid"></div>
+                <div class="grid infinite-scroll" id="recGrid"></div>
             </div>
         </section>
     </main>
@@ -53,102 +57,99 @@
         <p>&copy; 2023 ZenShows. Powered by <a href="https://www.themoviedb.org/" target="_blank">TMDB</a>. All rights reserved.</p>
     </footer>
     <!-- Modals -->
-    <div class="modal" id="loginModal">
+    <div class="modal" id="loginModal" role="dialog" aria-labelledby="loginTitle">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Login</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="loginTitle">Login</h2>
             <form id="loginForm">
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="password" id="password" placeholder="Password" required>
+                <input type="text" id="username" placeholder="Username" required aria-label="Username">
+                <input type="password" id="password" placeholder="Password" required aria-label="Password">
                 <button type="submit">Login</button>
             </form>
         </div>
     </div>
-    <div class="modal" id="searchModal">
+    <div class="modal" id="searchModal" role="dialog" aria-labelledby="searchTitle">
         <div class="modal-content large">
-            <span class="close">&times;</span>
-            <h2>Search</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="searchTitle">Search</h2>
             <div class="tabs">
                 <button class="tab-btn active" data-tab="movies">Movies</button>
                 <button class="tab-btn" data-tab="series">Series</button>
             </div>
-            <input type="text" id="searchInput" placeholder="Search...">
+            <input type="text" id="searchInput" placeholder="Search..." aria-label="Search">
             <div class="search-results" id="searchResults"></div>
         </div>
     </div>
-    <div class="modal" id="detailsModal">
+    <div class="modal" id="detailsModal" role="dialog" aria-labelledby="detailsTitle">
         <div class="modal-content large">
-            <span class="close">&times;</span>
+            <span class="close" aria-label="Close">&times;</span>
             <div id="detailsContent"></div>
         </div>
     </div>
-    <div class="modal" id="playerModal">
+    <div class="modal" id="playerModal" role="dialog" aria-labelledby="playerTitle">
         <div class="modal-content full">
-            <span class="close">&times;</span>
+            <span class="close" aria-label="Close">&times;</span>
             <div id="playerContent"></div>
         </div>
     </div>
-    <div class="toast" id="toast"></div>
-    <!-- Additional modals for features -->
-    <div class="modal" id="castModal">
+    <div class="toast" id="toast" role="alert"></div>
+    <!-- Additional Modals -->
+    <div class="modal" id="castModal" role="dialog" aria-labelledby="castTitle">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Cast & Crew</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="castTitle">Cast & Crew</h2>
             <div id="castContent"></div>
         </div>
     </div>
-    <div class="modal" id="settingsModal">
+    <div class="modal" id="settingsModal" role="dialog" aria-labelledby="settingsTitle">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Settings</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="settingsTitle">Settings</h2>
             <label><input type="checkbox" id="darkMode"> Dark Mode</label>
-            <label><input type="checkbox" id="notifications"> Enable Notifications</label>
-            <label><input type="checkbox" id="autoPlay"> Auto-play Next</label>
+            <label><input type="checkbox" id="notifications"> Notifications</label>
+            <label><input type="checkbox" id="autoPlay"> Auto-play</label>
             <label><input type="checkbox" id="kidsMode"> Kids Mode</label>
             <button id="saveSettings">Save</button>
         </div>
     </div>
-    <div class="modal" id="myListModal">
+    <div class="modal" id="myListModal" role="dialog" aria-labelledby="myListTitle">
         <div class="modal-content large">
-            <span class="close">&times;</span>
-            <h2>My List</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="myListTitle">My List</h2>
             <div id="myListContent"></div>
         </div>
     </div>
-    <div class="modal" id="historyModal">
+    <div class="modal" id="historyModal" role="dialog" aria-labelledby="historyTitle">
         <div class="modal-content large">
-            <span class="close">&times;</span>
-            <h2>Watch History</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="historyTitle">Watch History</h2>
             <div id="historyContent"></div>
         </div>
     </div>
-    <div class="modal" id="profileModal">
+    <div class="modal" id="profileModal" role="dialog" aria-labelledby="profileTitle">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Profile</h2>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="profileTitle">Profile</h2>
             <div id="profileContent"></div>
         </div>
     </div>
-    <div class="modal" id="shareModal">
+    <div class="modal" id="shareModal" role="dialog" aria-labelledby="shareTitle">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Share</h2>
-            <input type="text" id="shareLink" readonly>
+            <span class="close" aria-label="Close">&times;</span>
+            <h2 id="shareTitle">Share</h2>
+            <input type="text" id="shareLink" readonly aria-label="Share Link">
             <button onclick="navigator.share({url: document.getElementById('shareLink').value})">Share</button>
         </div>
     </div>
     <div class="intrusive-banner" id="adBanner">
-        <p>Watch Ad-Free? Upgrade Now!</p>
-        <button class="close-ad">&times;</button>
+        <p>Upgrade for Ad-Free Streaming!</p>
+        <button class="close-ad" aria-label="Close Ad">&times;</button>
     </div>
-    <!-- More features: Notifications, Reviews, etc. -->
-    <div class="notifications" id="notifications">
-        <!-- Dynamic toasts -->
-    </div>
+    <div class="floating-fab" id="fab" aria-label="Quick Actions">⚡</div>
     <div class="comments" id="commentsSection" style="display:none;">
         <h3>Comments</h3>
         <div id="commentsList"></div>
-        <textarea id="commentInput" placeholder="Add a comment..."></textarea>
+        <textarea id="commentInput" placeholder="Add a comment..." aria-label="Comment"></textarea>
         <button id="submitComment">Submit</button>
     </div>
     <script src="script.js"></script>
