@@ -126,19 +126,12 @@
             <div id="historyContent"></div>
         </div>
     </div>
-    <div class="modal" id="profileModal" role="dialog" aria-labelledby="profileTitle">
-        <div class="modal-content">
-            <span class="close" aria-label="Close">&times;</span>
-            <h2 id="profileTitle">Profile</h2>
-            <div id="profileContent"></div>
-        </div>
-    </div>
     <div class="modal" id="shareModal" role="dialog" aria-labelledby="shareTitle">
         <div class="modal-content">
             <span class="close" aria-label="Close">&times;</span>
             <h2 id="shareTitle">Share</h2>
             <input type="text" id="shareLink" readonly aria-label="Share Link">
-            <button onclick="navigator.share({url: document.getElementById('shareLink').value})">Share</button>
+            <button onclick="navigator.share ? navigator.share({url: document.getElementById('shareLink').value}) : alert('Sharing not supported')">Share</button>
         </div>
     </div>
     <div class="intrusive-banner" id="adBanner">
